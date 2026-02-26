@@ -1,137 +1,109 @@
 # Clash 订阅合并工具
 
-自动合并多个订阅源（GlaDOS、Sub-Store 等），生成 Clash/OpenClash YAML 配置文件。支持多套代理组方案，GlaDOS 与 VPS 可独立使用。
-
-## 功能
-
-- 🔄 **多订阅合并** — GlaDOS + Sub-Store (RackNerd/Vultr)，按需加载
-- 🎛️ **多方案切换** — `profiles/` 目录下每个文件即一套分组方案，命令行切换
-- 🏷️ **智能分组** — 按节点名自动分类，`{分类名}` 语法引用
-- ⚡ **自动回退** — 精简方案中缺失的规则目标自动替换为可用代理组
-- 💾 **缓存机制** — GlaDOS 订阅获取失败自动回退本地缓存
-- 🔒 **安全提交** — 敏感信息通过 `.gitignore` 排除
+自动合并多个订阅源（GlaDOS、Sub-Store 等），生成 Clash/OpenClash YAML 配置文件。支持多客户端（Mihomo/Clash）和多套代理组方案。
 
 ## 文件结构
 
 ```
 clash-sub-merger/
-├── merge_glados.py           # 核心脚本
-├── config.example.yaml       # 配置模版（提交 Git）
-├── config.yaml               # 私有配置（.gitignore 排除）
-├── rules_template.yaml       # 分流规则（1200+ 条）
+├── run.sh                    # 交互菜单 & 命令行入口
+├── merge_glados.py           # 合并脚本
+├── sync_profiles.py          # 同步脚本（从 GlaDOS 更新 profiles）
+├── conf/                     # 配置目录
+│   ├── config.example.yaml   #   配置模版（提交 Git）
+│   ├── config.yaml           #   私有配置（.gitignore 排除）
+│   └── rules_template.yaml   #   分流规则（1200+ 条）
 ├── profiles/                 # 代理组方案
-│   ├── default.yaml          #   完整方案（GlaDOS + VPS，11 个分组）
-│   └── vps.yaml              #   极简方案（仅 VPS，1 个分组）
+│   ├── mihomo.yaml           #   Mihomo 客户端（sync 自动生成）
+│   ├── clash.yaml            #   Clash Standard（sync 自动生成）
+│   ├── custom.yaml           #   自定义方案（手动维护）
+│   └── vps.yaml              #   极简方案（仅 VPS）
 ├── output/                   # 生成结果（.gitignore 排除）
-│   ├── clash_default.yaml    #   固定名输出（Clash 导入用）
-│   ├── clash_vps.yaml        #   固定名输出
-│   └── generate.log          #   生成记录（追加写入）
-├── cache/                    # GlaDOS 订阅缓存（获取成功自动保存，失败时回退）
-├── .gitignore
-└── README.md
+│   ├── mihomo.yaml
+│   ├── clash.yaml
+│   └── vps.yaml
+├── logs/                     # 日志目录（.gitignore 排除）
+│   └── generate.log
+├── cache/                    # 订阅缓存（.gitignore 排除）
+└── .gitignore
 ```
 
 ## 快速开始
 
-### 1. 安装依赖
-
 ```bash
+# 1. 安装依赖
 pip install pyyaml requests
+
+# 2. 创建配置
+cp conf/config.example.yaml conf/config.yaml
+# 编辑 conf/config.yaml，填入 GlaDOS 订阅链接
+
+# 3. 使用交互菜单
+./run.sh
 ```
 
-### 2. 创建配置
+## 使用方式
+
+### 交互菜单
 
 ```bash
-cp config.example.yaml config.yaml
-# 编辑 config.yaml，填入你的订阅链接
+./run.sh
 ```
 
-### 3. 运行
+### 命令行模式
 
 ```bash
-python merge_glados.py                    # 使用默认方案
-python merge_glados.py -p vps             # 使用 VPS 方案
-python merge_glados.py --list-profiles    # 查看所有方案
+./run.sh sync                  # 同步所有客户端 profiles
+./run.sh sync mihomo           # 只同步 mihomo
+./run.sh merge mihomo          # 合并生成 mihomo 配置
+./run.sh merge clash           # 合并生成 clash 配置
+./run.sh merge vps             # 合并生成 VPS 配置
+./run.sh list                  # 查看所有方案
+./run.sh log                   # 查看生成日志
 ```
 
-输出文件在 `output/clash_<方案名>.yaml`，可直接导入 Clash/OpenClash。
+### 直接调用 Python
+
+```bash
+python sync_profiles.py                    # 同步所有客户端
+python sync_profiles.py -t mihomo          # 只同步 mihomo
+python merge_glados.py                     # 默认 mihomo 方案
+python merge_glados.py -p clash            # Clash 方案
+python merge_glados.py --list-profiles     # 列出方案
+```
 
 ## 代理组方案
 
-方案文件存放在 `profiles/` 目录，每个 `.yaml` 文件对应一套方案。
+| 方案 | 说明 | 维护方式 |
+|------|------|----------|
+| `mihomo` | Mihomo/Clash Meta | `sync_profiles.py` 自动同步 |
+| `clash` | Clash Standard | `sync_profiles.py` 自动同步 |
+| `custom` | 自定义分组（`{分类名}` 引用） | 手动编辑 |
+| `vps` | 极简（仅 VPS，无需 GlaDOS） | 无需维护 |
 
-### default 方案（完整，11 个分组）
+### 日常维护
 
-需要 GlaDOS 订阅。VPS 节点（RackNerd + Vultr）合并为一个 VPS 组，GlaDOS 节点按区域自动分类。Auto/Express 故障转移链末尾有 VPS 兜底。
-
+```bash
+# GlaDOS 更新链接后：
+# 1. 编辑 conf/config.yaml 更新 glados_urls
+# 2. 一键同步 + 生成
+./run.sh sync
+./run.sh merge mihomo
 ```
-流量分流示意：
-                  ┌→ Auto-Fast (R2 节点，自动测速)
-                  ├→ Auto-Edge  (B1+US 节点，自动测速)
-用户请求 → Rules ─┼→ Proxy (手动选择: Auto / VPS / 各区域节点)
-                  ├→ Video / Netflix / Scholar / Steam
-                  └→ DIRECT (国内流量直连)
-
-故障转移链：Auto-Fast → Auto-Edge → Auto-Failover → VPS (兜底)
-```
-
-### vps 方案（极简，1 个分组）
-
-**无需 GlaDOS 订阅**，所有代理流量统一走 VPS 节点。国内流量仍走 DIRECT。
-
-```yaml
-proxy_groups:
-  - name: VPS
-    type: select
-    use: [sub3in1]
-```
-
-### 自定义方案
-
-在 `profiles/` 下新建 `.yaml` 文件即可，脚本自动识别：
-
-```yaml
-# profiles/custom.yaml
-proxy_groups:
-  - name: MyProxy
-    type: select
-    use: [sub3in1]
-
-  - name: AutoGlaDOS
-    type: url-test
-    proxies: ["{R2}", "{US}"]  # {分类名} 自动展开为 GlaDOS 节点
-```
-
-### 引用语法
-
-| 语法 | 说明 |
-|------|------|
-| `{R2}` | 展开为该分类的所有 GlaDOS 节点 |
-| `Auto` | 引用其他代理组 |
-| `DIRECT` / `REJECT` | Clash 内置 |
-
-可用分类（自动识别 `GLaDOS-XX-NN` 格式）：`R2` `B1` `US` `JP` `TW` `SG` `D1` `S2` `P1` `Netflix`
 
 ## 生成日志
 
-每次运行追加记录到 `output/generate.log`：
+`logs/generate.log` 统一记录同步和合并操作：
 
 ```
-2026-02-26 10:31:00 | default    |  54 nodes | 11 groups | 1201 rules | glados: cache | provider: ok   | 60KB
-2026-02-26 10:31:00 | vps        |   0 nodes |  1 groups | 1201 rules | glados: skip  | provider: ok   | 41KB
+2026-02-26 13:27:07 | SYNC  | mihomo     | ok   | 11 groups | from: online
+2026-02-26 13:27:08 | SYNC  | clash      | ok   | 11 groups | from: online
+2026-02-26 13:27:09 | MERGE | mihomo     |  36 nodes | 12 groups | 1201 rules | glados: ok    | 53KB
+2026-02-26 13:27:10 | MERGE | vps        |   0 nodes |  1 groups | 1201 rules | glados: skip  | 41KB
 ```
-
-| GlaDOS 状态 | 含义 |
-|-------------|------|
-| `ok` | 在线获取成功 |
-| `cache` | 在线失败，回退本地缓存 |
-| `skip` | 当前方案不需要 GlaDOS |
-| `fail` | 获取失败且无缓存 |
 
 ## 注意事项
 
-- `config.yaml` 包含敏感链接，已被 `.gitignore` 排除
-- GlaDOS 链接可能变化，需登录 GlaDOS 后台获取最新链接
-- 仅使用 VPS 方案时无需 GlaDOS 链接，脚本自动跳过
-- `rules_template.yaml` 可独立编辑，不受脚本更新影响
-- 输出文件按方案名命名（`clash_default.yaml` / `clash_vps.yaml`），互不覆盖
+- `conf/config.yaml` 包含敏感链接，已被 `.gitignore` 排除
+- `mihomo.yaml` 和 `clash.yaml` 由 `sync_profiles.py` 自动生成，不要手动编辑
+- GlaDOS 链接变化时需重新同步：`./run.sh sync`

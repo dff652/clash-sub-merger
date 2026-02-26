@@ -4,9 +4,9 @@
 # 使用：python merge_glados.py -p default
 #
 # 引用语法：
-#   {R2}  → 展开为 R2 分类的所有 GlaDOS 节点
 #   {US}  → 展开为 US 分类的所有 GlaDOS 节点
-#   可用分类: R2, B1, US, JP, TW, SG, D1, S2, P1, Netflix
+#   {TW}  → 展开为 TW 分类的所有 GlaDOS 节点
+#   可用分类（新订阅）: TW, Balancer, US, JP, SG
 
 proxy_groups:
   # --- VPS 节点（从 Sub-Store 获取，合并）---
@@ -20,14 +20,14 @@ proxy_groups:
     url: "http://www.gstatic.cn/generate_204"
     interval: 120
     tolerance: 100
-    proxies: ["{R2}"]
+    proxies: ["{TW}"]
 
   - name: Auto-Edge
     type: url-test
     url: "http://www.gstatic.cn/generate_204"
     interval: 600
     tolerance: 100
-    proxies: ["{B1}", "{US}"]
+    proxies: ["{Balancer}", "{US}"]
 
   - name: Auto-Failover
     type: url-test
@@ -53,27 +53,27 @@ proxy_groups:
   # --- 手动选择组 ---
   - name: Proxy
     type: select
-    proxies: ["Auto", "VPS", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
+    proxies: ["Auto", "VPS", "{US}", "{JP}", "{TW}", "{SG}"]
 
   - name: Video
     type: select
     interval: 900
     url: "http://www.gstatic.cn/generate_204"
-    proxies: ["Express", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
+    proxies: ["Express", "{US}", "{JP}", "{TW}", "{SG}"]
 
   - name: Netflix
     type: select
     url: "http://www.gstatic.cn/generate_204"
     interval: 1200
-    proxies: ["{Netflix}", "Auto-Edge", "DIRECT"]
+    proxies: ["{TW}", "{JP}", "Auto-Edge", "DIRECT"]
 
   - name: Scholar
     type: select
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
     tolerance: 100
-    proxies: ["{P1}", "{S2}", "Proxy", "DIRECT"]
+    proxies: ["{US}", "{JP}", "Proxy", "DIRECT"]
 
   - name: Steam
     type: select
-    proxies: ["{D1}", "Auto-Edge", "DIRECT"]
+    proxies: ["{US}", "Auto-Edge", "DIRECT"]

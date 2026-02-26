@@ -7,8 +7,8 @@ merge_glados.py - Clash 订阅合并脚本
      并最终生成可用于 Clash/OpenClash 的 YAML 配置文件。
 
 使用方法：
-    python merge_glados.py                    # 使用默认 config.yaml
-    python merge_glados.py -c custom.yaml     # 使用自定义配置文件
+    python merge_glados.py                    # 使用默认 conf/config.yaml
+    python merge_glados.py -c conf/custom.yaml # 使用自定义配置文件
 """
 
 import argparse
@@ -97,23 +97,35 @@ def fetch_subscription(url: str, name: str = "订阅", cache_file: str = None) -
 
 def classify_proxies(proxies: list) -> dict:
     """
-    按节点名称前缀分类 GlaDOS 节点。
+    按节点名称分类代理节点。
     返回 dict: { 分类名: [节点名称列表] }
 
-    自动识别 GLaDOS-XX-NN 格式，提取 XX 作为分类名。
-    例如: GLaDOS-R2-01 → R2,  GLaDOS-Netflix-01 → Netflix
+    支持多种命名格式：
+      旧格式: GLaDOS-R2-01 → R2,  GLaDOS-Netflix-01 → Netflix
+      新格式: US-1 → US,  JP-2 → JP,  TW-IPv6-P1-1 → TW
+              Fast-TW-B2-1 → TW,  Fast-Balancer-B1-1 → Balancer
     """
+    # 匹配规则（按优先级排列）
+    patterns = [
+        # 旧格式: GLaDOS-<Category>-<Number>
+        re.compile(r"^GLaDOS-([A-Za-z0-9]+)-\d+$"),
+        # 新格式 Fast- 开头: Fast-<Region>-<Suffix>
+        re.compile(r"^Fast-([A-Za-z]+)-"),
+        # 新格式 区域代码开头: <REGION>-xxx
+        re.compile(r"^([A-Z]{2})(?:-|$)"),
+    ]
+
     categories = OrderedDict()
 
     for proxy in proxies:
         name = proxy.get("name", "")
-        # 匹配 GLaDOS-<Category>-<Number> 格式
-        match = re.match(r"^GLaDOS-([A-Za-z0-9]+)-\d+$", name)
-        if match:
-            cat = match.group(1)
-            categories.setdefault(cat, []).append(name)
-        else:
-            categories.setdefault("Other", []).append(name)
+        cat = "Other"
+        for pattern in patterns:
+            match = pattern.match(name)
+            if match:
+                cat = match.group(1)
+                break
+        categories.setdefault(cat, []).append(name)
 
     for cat, names in categories.items():
         logger.info("  分类 %-10s: %d 个节点", cat, len(names))
@@ -199,6 +211,7 @@ def build_proxy_groups(cfg: dict, categories: dict, profile: str = None) -> list
         sys.exit(1)
 
     groups = []
+    skipped = []
     for gdef in group_defs:
         group = OrderedDict()
         for key, val in gdef.items():
@@ -206,7 +219,17 @@ def build_proxy_groups(cfg: dict, categories: dict, profile: str = None) -> list
                 group[key] = expand_proxy_list(val, categories)
             else:
                 group[key] = val
+
+        # 空组保护：如果没有 proxies 也没有 use，跳过该组
+        has_proxies = bool(group.get("proxies"))
+        has_use = bool(group.get("use"))
+        if not has_proxies and not has_use:
+            skipped.append(group.get("name", "?"))
+            continue
         groups.append(group)
+
+    if skipped:
+        logger.warning("⚠️  以下分组因无可用节点被跳过: %s", ", ".join(skipped))
 
     return groups
 
@@ -352,15 +375,24 @@ def build_base_config(glados_data: dict = None) -> OrderedDict:
 
 
 def profile_needs_glados(cfg: dict, profile: str = None) -> bool:
-    """检测 profile 是否引用了 {分类名}，即是否需要 GlaDOS 节点。"""
+    """检测 profile 是否需要 GlaDOS 节点（通过 {分类名} 引用或 needs_glados 标志）。"""
     if not profile:
         profile = cfg.get("default_profile", "default")
-    try:
-        group_defs = load_profile(cfg, profile)
-    except SystemExit:
-        return True  # 加载失败时保守地认为需要
 
-    for gdef in group_defs:
+    profiles_dir = get_profiles_dir(cfg)
+    profile_file = profiles_dir / f"{profile}.yaml"
+    if not profile_file.exists():
+        return True
+
+    with open(profile_file, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    # 方式1: profile 文件中显式声明 needs_glados: true
+    if data.get("needs_glados", False):
+        return True
+
+    # 方式2: 检测是否引用了 {分类名}
+    for gdef in data.get("proxy_groups", []):
         proxies = gdef.get("proxies", [])
         for item in proxies:
             if isinstance(item, str) and REF_PATTERN.match(item):
@@ -374,7 +406,7 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
 
     # 确定实际使用的方案名
     if not profile:
-        profile = cfg.get("default_profile", "default")
+        profile = cfg.get("default_profile", "mihomo")
 
     # 1. 检测是否需要 GlaDOS 订阅
     needs_glados = profile_needs_glados(cfg, profile)
@@ -383,21 +415,33 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     glados_status = "skip"
 
     if needs_glados:
-        glados_url = cfg.get("glados_url", "")
+        # 从 profile 文件读取 glados_client 字段确定客户端类型
+        profiles_dir = get_profiles_dir(cfg)
+        profile_file = profiles_dir / f"{profile}.yaml"
+        glados_client = profile  # 默认用 profile 名作为客户端名
+        if profile_file.exists():
+            with open(profile_file, "r", encoding="utf-8") as f:
+                pdata = yaml.safe_load(f)
+            glados_client = pdata.get("glados_client", profile)
+
+        # 从 glados_urls 中获取 URL（兼容旧格式 glados_url）
+        glados_urls = cfg.get("glados_urls", {})
+        glados_url = glados_urls.get(glados_client, cfg.get("glados_url", ""))
+
         if glados_url:
-            cache_file = str(script_dir / cfg.get("glados_cache_file", "cache/glados_latest.yaml"))
+            cache_dir = script_dir / cfg.get("glados_cache_dir", "cache")
+            cache_file = str(cache_dir / f"glados_{glados_client}.yaml")
             try:
                 resp = requests.get(glados_url, timeout=30)
                 resp.raise_for_status()
                 glados_data = yaml.safe_load(resp.text)
                 glados_status = "ok"
-                # 保存缓存
                 Path(cache_file).parent.mkdir(parents=True, exist_ok=True)
                 with open(cache_file, "w", encoding="utf-8") as f:
                     f.write(resp.text)
-                logger.info("成功获取 GlaDOS 订阅")
+                logger.info("成功获取 GlaDOS %s 订阅", glados_client)
             except requests.RequestException as e:
-                logger.warning("获取 GlaDOS 订阅失败: %s", e)
+                logger.warning("获取 GlaDOS %s 订阅失败: %s", glados_client, e)
                 if Path(cache_file).exists():
                     glados_status = "cache"
                     with open(cache_file, "r", encoding="utf-8") as f:
@@ -408,10 +452,10 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
                     logger.error("无本地缓存可用，无法继续")
                     sys.exit(1)
             proxies = glados_data.get("proxies", [])
-            logger.info("GlaDOS 订阅共 %d 个节点", len(proxies))
+            logger.info("GlaDOS %s 订阅共 %d 个节点", glados_client, len(proxies))
         else:
             glados_status = "no-url"
-            logger.warning("方案引用了 {分类名} 但未配置 glados_url，跳过 GlaDOS 节点")
+            logger.warning("未配置 %s 的订阅链接，跳过 GlaDOS 节点", glados_client)
     else:
         logger.info("📦 当前方案无需 GlaDOS 节点，跳过订阅获取")
 
@@ -448,6 +492,8 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     now = datetime.now()
 
     output_dir = script_dir / cfg.get("output_dir", "output")
+    log_dir = script_dir / cfg.get("log_dir", "logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 生成 YAML 内容
@@ -461,18 +507,18 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     )
 
     # 写入固定名文件（方便 Clash 导入）
-    output_path = output_dir / f"clash_{profile}.yaml"
+    output_path = output_dir / f"{profile}.yaml"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(yaml_header + yaml_content)
     file_size_kb = output_path.stat().st_size / 1024
 
     # 追加生成日志
-    log_path = output_dir / "generate.log"
+    log_path = log_dir / "generate.log"
     n_proxies = len(proxies)
     n_groups = len(result["proxy-groups"])
     n_rules = len(result["rules"])
     log_line = (
-        f"{now.strftime('%Y-%m-%d %H:%M:%S')} | {profile:10s} "
+        f"{now.strftime('%Y-%m-%d %H:%M:%S')} | MERGE | {profile:10s} "
         f"| {n_proxies:3d} nodes | {n_groups:2d} groups | {n_rules:4d} rules "
         f"| glados: {glados_status:5s} | provider: {provider_status:4s} "
         f"| {file_size_kb:.0f}KB\n"
@@ -488,6 +534,7 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     logger.info("   - rules: %d 条规则", n_rules)
 
 
+
 # ---------------------------------------------------------------------------
 # 入口
 # ---------------------------------------------------------------------------
@@ -498,8 +545,8 @@ def main():
     )
     parser.add_argument(
         "-c", "--config",
-        default=str(Path(__file__).parent / "config.yaml"),
-        help="配置文件路径（默认: config.yaml）",
+        default=str(Path(__file__).parent / "conf" / "config.yaml"),
+        help="配置文件路径（默认: conf/config.yaml）",
     )
     parser.add_argument(
         "-p", "--profile",
@@ -518,7 +565,7 @@ def main():
     # 列出可用方案
     if args.list_profiles:
         available = list_available_profiles(cfg)
-        default_profile = cfg.get("default_profile", "default")
+        default_profile = cfg.get("default_profile", "mihomo")
         if available:
             profiles_dir = get_profiles_dir(cfg)
             print(f"可用的代理组方案（{profiles_dir}/）:")

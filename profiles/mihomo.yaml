@@ -1,0 +1,177 @@
+# ===== 方案：mihomo =====
+# 自动同步自 GlaDOS mihomo 订阅（2026-02-26 13:27:07）
+# 运行 python sync_profiles.py -t mihomo 更新此文件
+
+needs_glados: true
+glados_client: mihomo
+
+proxy_groups:
+  # --- VPS 节点（Sub-Store，追加）---
+  - name: VPS
+    type: select
+    use: [sub3in1]
+
+  - name: Auto
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 120
+    tolerance: 100
+    proxies:
+      - "Fast-TW-B2-1"
+      - "Fast-TW-B2-2"
+      - "Fast-TW-B2-3"
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+
+  - name: Express
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    tolerance: 100
+    proxies:
+      - "Fast-Balancer-B1-1"
+      - "Fast-Balancer-B1-2"
+      - "Fast-Balancer-B1-3"
+      - "US-1"
+      - "US-2"
+      - "US-3"
+      - "US-X02-D1-1"
+      - "US-X02-D1-2"
+      - "US-X02-D1-3"
+      - "US-X10-D2-1"
+      - "US-X10-D2-2"
+      - "US-X10-D2-3"
+
+  - name: Download
+    type: select
+    proxies:
+      - "US-X02-D1-1"
+      - "US-X02-D1-2"
+      - "US-X02-D1-3"
+      - "US-X10-D2-1"
+      - "US-X10-D2-2"
+      - "US-X10-D2-3"
+      - "DIRECT"
+
+  - name: Microsoft
+    type: select
+    proxies:
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+      - "DIRECT"
+
+  - name: PrivateIP
+    type: select
+    proxies:
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+
+  - name: Premium
+    type: select
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    tolerance: 100
+    proxies:
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
+      - "US-X02-D1-1"
+      - "US-X02-D1-2"
+      - "US-X02-D1-3"
+      - "US-X10-D2-1"
+      - "US-X10-D2-2"
+      - "US-X10-D2-3"
+
+  - name: US
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies:
+      - "US-1"
+      - "US-2"
+      - "US-3"
+      - "Auto"
+
+  - name: JP
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies:
+      - "JP-1"
+      - "JP-2"
+      - "JP-3"
+      - "Auto"
+
+  - name: TW
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies:
+      - "TW-1"
+      - "TW-2"
+      - "TW-3"
+      - "Auto"
+
+  - name: SG
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies:
+      - "SG-1"
+      - "SG-2"
+      - "SG-3"
+      - "Auto"
+
+  - name: Proxy
+    type: select
+    proxies:
+      - "Auto"
+      - "Express"
+      - "Premium"
+      - "PrivateIP"
+      - "US-1"
+      - "US-2"
+      - "US-3"
+      - "JP-1"
+      - "JP-2"
+      - "JP-3"
+      - "TW-1"
+      - "TW-2"
+      - "TW-3"
+      - "SG-1"
+      - "SG-2"
+      - "SG-3"
+      - "US-X02-D1-1"
+      - "US-X02-D1-2"
+      - "US-X02-D1-3"
+      - "US-X10-D2-1"
+      - "US-X10-D2-2"
+      - "US-X10-D2-3"
+      - "VPS"

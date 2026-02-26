@@ -1,13 +1,15 @@
-# 敏感配置文件（包含订阅链接和 token）
-config.yaml
+# 私有配置（含敏感链接）
+conf/config.yaml
 
-# 生成的输出文件
+# 生成结果
 output/
 
-# GlaDOS 订阅缓存
+# 订阅缓存
 cache/
+
+# 日志
+logs/
 
 # Python
 __pycache__/
 *.pyc
-*.pyo
