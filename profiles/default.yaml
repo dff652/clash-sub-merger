@@ -1,0 +1,85 @@
+# ===== 方案：default =====
+# RackNerd 和 Vultr 分开为独立代理组
+#
+# 使用：python merge_glados.py -p default
+#
+# 引用语法：
+#   {R2}  → 展开为 R2 分类的所有 GlaDOS 节点
+#   {US}  → 展开为 US 分类的所有 GlaDOS 节点
+#   可用分类: R2, B1, US, JP, TW, SG, D1, S2, P1, Netflix
+
+proxy_groups:
+  # --- VPS 节点（从 Sub-Store 获取，分开）---
+  - name: RackNerd
+    type: select
+    use: [sub3in1]
+    filter: "^\\\\[RackNerd\\\\]"
+
+  - name: Vultr
+    type: select
+    use: [sub3in1]
+    filter: "^\\\\[Vultr\\\\]"
+
+  # --- 自动测速组 ---
+  - name: Auto-Fast
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 120
+    tolerance: 100
+    proxies: ["{R2}"]
+
+  - name: Auto-Edge
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 600
+    tolerance: 100
+    proxies: ["{B1}", "{US}"]
+
+  - name: Auto-Failover
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    tolerance: 100
+    proxies: ["{US}"]
+
+  # --- 故障转移组 ---
+  - name: Express
+    type: fallback
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 600
+    tolerance: 100
+    proxies: ["Auto-Edge", "Auto-Fast", "Auto-Failover"]
+
+  - name: Auto
+    type: fallback
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies: ["Auto-Fast", "Auto-Edge", "Auto-Failover"]
+
+  # --- 手动选择组 ---
+  - name: Proxy
+    type: select
+    proxies: ["Auto", "RackNerd", "Vultr", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
+
+  - name: Video
+    type: select
+    interval: 900
+    url: "http://www.gstatic.cn/generate_204"
+    proxies: ["Express", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
+
+  - name: Netflix
+    type: select
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 1200
+    proxies: ["{Netflix}", "Auto-Edge", "DIRECT"]
+
+  - name: Scholar
+    type: select
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    tolerance: 100
+    proxies: ["{P1}", "{S2}", "Proxy", "DIRECT"]
+
+  - name: Steam
+    type: select
+    proxies: ["{D1}", "Auto-Edge", "DIRECT"]

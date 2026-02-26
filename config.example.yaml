@@ -1,0 +1,33 @@
+# ===== Clash 订阅合并脚本配置（示例模版）=====
+# 使用方法：复制此文件为 config.yaml，填入你自己的订阅链接
+#   cp config.example.yaml config.yaml
+
+# GlaDOS 订阅链接（登录 GlaDOS 后台获取）
+glados_url: "https://update.glados-config.com/clash/<your-user-id>/<your-token>/<your-port>/glados-openclash.yaml"
+
+# GlaDOS 本地缓存文件（远程获取失败时自动回退）
+glados_cache_file: "cache/glados_latest.yaml"
+
+# Sub-Store 组合订阅链接
+# Sub-Store 前端：http://<your-host>:3011/subs
+sub_store_url: "http://<your-host>:<port>/<your-token>/download/collection/<collection-name>"
+
+# Sub-Store provider 名称
+sub_store_provider_name: "sub3in1"
+
+# 输出文件路径
+output_file: "output/update_glados_config.yaml"
+
+# 规则模版文件路径
+rules_template_file: "rules_template.yaml"
+
+# 代理组方案目录
+profiles_dir: "profiles"
+
+# 默认方案名
+default_profile: "default"
+
+# proxy-providers 健康检查配置
+provider_interval: 3600
+provider_health_check_interval: 600
+provider_health_check_url: "http://www.gstatic.cn/generate_204"

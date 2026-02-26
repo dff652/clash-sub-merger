@@ -1,0 +1,10 @@
+# ===== 方案：vps =====
+# 极简方案：仅一个 VPS 代理组
+# 所有代理流量统一走 VPS 节点（RackNerd + Vultr）
+#
+# 使用：python merge_glados.py -p vps
+
+proxy_groups:
+  - name: VPS
+    type: select
+    use: [sub3in1]
