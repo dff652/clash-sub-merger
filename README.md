@@ -23,7 +23,8 @@ clash-sub-merger/
 │   ├── clash.yaml
 │   └── vps.yaml
 ├── logs/                     # 日志目录（.gitignore 排除）
-│   └── generate.log
+│   ├── generate.log          #   同步/合并摘要（一行一条）
+│   └── detail.log            #   完整运行日志（排查问题用）
 ├── cache/                    # 订阅缓存（.gitignore 排除）
 └── .gitignore
 ```
@@ -91,16 +92,23 @@ python merge_glados.py --list-profiles     # 列出方案
 ./run.sh merge mihomo
 ```
 
-## 生成日志
+## 日志
 
-`logs/generate.log` 统一记录同步和合并操作：
+所有日志存放在 `logs/` 目录下：
+
+| 文件 | 内容 | 用途 |
+|------|------|------|
+| `generate.log` | 一行摘要（SYNC/MERGE） | 快速查看历史记录 |
+| `detail.log` | 完整 INFO/WARNING 输出 | 排查问题、调试 |
+
+`generate.log` 示例：
 
 ```
 2026-02-26 13:27:07 | SYNC  | mihomo     | ok   | 11 groups | from: online
-2026-02-26 13:27:08 | SYNC  | clash      | ok   | 11 groups | from: online
 2026-02-26 13:27:09 | MERGE | mihomo     |  36 nodes | 12 groups | 1201 rules | glados: ok    | 53KB
-2026-02-26 13:27:10 | MERGE | vps        |   0 nodes |  1 groups | 1201 rules | glados: skip  | 41KB
 ```
+
+查看日志：`./run.sh log`
 
 ## 注意事项
 
