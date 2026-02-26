@@ -1,5 +1,5 @@
 # ===== 方案：default =====
-# RackNerd 和 Vultr 分开为独立代理组
+# 完整方案：GlaDOS + VPS（RackNerd + Vultr 合并）
 #
 # 使用：python merge_glados.py -p default
 #
@@ -9,16 +9,10 @@
 #   可用分类: R2, B1, US, JP, TW, SG, D1, S2, P1, Netflix
 
 proxy_groups:
-  # --- VPS 节点（从 Sub-Store 获取，分开）---
-  - name: RackNerd
+  # --- VPS 节点（从 Sub-Store 获取，合并）---
+  - name: VPS
     type: select
     use: [sub3in1]
-    filter: "^\\\\[RackNerd\\\\]"
-
-  - name: Vultr
-    type: select
-    use: [sub3in1]
-    filter: "^\\\\[Vultr\\\\]"
 
   # --- 自动测速组 ---
   - name: Auto-Fast
@@ -59,7 +53,7 @@ proxy_groups:
   # --- 手动选择组 ---
   - name: Proxy
     type: select
-    proxies: ["Auto", "RackNerd", "Vultr", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
+    proxies: ["Auto", "VPS", "{US}", "{JP}", "{TW}", "{SG}", "{D1}"]
 
   - name: Video
     type: select

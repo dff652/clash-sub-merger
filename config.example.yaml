@@ -15,8 +15,8 @@ sub_store_url: "http://<your-host>:<port>/<your-token>/download/collection/<coll
 # Sub-Store provider 名称
 sub_store_provider_name: "sub3in1"
 
-# 输出文件路径
-output_file: "output/update_glados_config.yaml"
+# 输出目录（文件名自动按方案命名：clash_<profile>.yaml）
+output_dir: "output"
 
 # 规则模版文件路径
 rules_template_file: "rules_template.yaml"

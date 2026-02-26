@@ -14,16 +14,17 @@
 ## 文件结构
 
 ```
-clash_yaml/
+clash-sub-merger/
 ├── merge_glados.py           # 核心脚本
 ├── config.example.yaml       # 配置模版（提交 Git）
 ├── config.yaml               # 私有配置（.gitignore 排除）
 ├── rules_template.yaml       # 分流规则（1200+ 条）
 ├── profiles/                 # 代理组方案
-│   ├── default.yaml          #   完整方案（GlaDOS + VPS，12 个分组）
+│   ├── default.yaml          #   完整方案（GlaDOS + VPS，11 个分组）
 │   └── vps.yaml              #   极简方案（仅 VPS，1 个分组）
 ├── output/                   # 生成结果（.gitignore 排除）
-│   └── update_glados_config.yaml
+│   ├── clash_default.yaml    #   default 方案输出
+│   └── clash_vps.yaml        #   vps 方案输出
 ├── cache/                    # 订阅缓存（.gitignore 排除）
 ├── .gitignore
 └── README.md
@@ -52,26 +53,28 @@ python merge_glados.py -p vps             # 使用 VPS 方案
 python merge_glados.py --list-profiles    # 查看所有方案
 ```
 
-输出文件在 `output/update_glados_config.yaml`。
+输出文件在 `output/clash_<方案名>.yaml`，可直接导入 Clash/OpenClash。
 
 ## 代理组方案
 
 方案文件存放在 `profiles/` 目录，每个 `.yaml` 文件对应一套方案。
 
-### default 方案（完整，12 个分组）
+### default 方案（完整，11 个分组）
 
-需要 GlaDOS 订阅，包含自动测速、故障转移、按用途分流等分组。
+需要 GlaDOS 订阅。VPS 节点（RackNerd + Vultr）合并为一个 VPS 组，GlaDOS 节点按区域自动分类。
 
-| 代理组 | 类型 | 节点来源 |
-|--------|------|----------|
-| RackNerd / Vultr | select | Sub-Store (filter) |
-| Auto-Fast / Edge / Failover | url-test | GlaDOS R2/B1/US 节点 |
-| Express / Auto | fallback | 多个自动测速组 |
-| Proxy / Video / Netflix / Scholar / Steam | select | 按用途组合 |
+```
+流量分流示意：
+                  ┌→ Auto-Fast (R2 节点，自动测速)
+                  ├→ Auto-Edge  (B1+US 节点，自动测速)
+用户请求 → Rules ─┼→ Proxy (手动选择: Auto / VPS / 各区域节点)
+                  ├→ Video / Netflix / Scholar / Steam
+                  └→ DIRECT (国内流量直连)
+```
 
 ### vps 方案（极简，1 个分组）
 
-无需 GlaDOS 订阅，所有流量走 VPS。
+**无需 GlaDOS 订阅**，所有代理流量统一走 VPS 节点。国内流量仍走 DIRECT。
 
 ```yaml
 proxy_groups:
@@ -82,7 +85,7 @@ proxy_groups:
 
 ### 自定义方案
 
-在 `profiles/` 下新建 `.yaml` 文件即可：
+在 `profiles/` 下新建 `.yaml` 文件即可，脚本自动识别：
 
 ```yaml
 # profiles/custom.yaml
@@ -90,10 +93,10 @@ proxy_groups:
   - name: MyProxy
     type: select
     use: [sub3in1]
-    
+
   - name: AutoGlaDOS
     type: url-test
-    proxies: ["{R2}", "{US}"]  # {分类名} 引用 GlaDOS 节点
+    proxies: ["{R2}", "{US}"]  # {分类名} 自动展开为 GlaDOS 节点
 ```
 
 ### 引用语法
@@ -112,3 +115,4 @@ proxy_groups:
 - GlaDOS 链接可能变化，需登录 GlaDOS 后台获取最新链接
 - 仅使用 VPS 方案时无需 GlaDOS 链接，脚本自动跳过
 - `rules_template.yaml` 可独立编辑，不受脚本更新影响
+- 输出文件按方案名命名（`clash_default.yaml` / `clash_vps.yaml`），互不覆盖

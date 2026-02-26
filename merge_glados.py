@@ -372,6 +372,10 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     """主合并逻辑"""
     script_dir = Path(__file__).parent
 
+    # 确定实际使用的方案名
+    if not profile:
+        profile = cfg.get("default_profile", "default")
+
     # 1. 检测是否需要 GlaDOS 订阅
     needs_glados = profile_needs_glados(cfg, profile)
     glados_data = None
@@ -414,9 +418,10 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     # 7. 自动修复 rules 中引用的缺失组名
     result["rules"] = fixup_rules(result)
 
-    # 8. 输出 YAML
-    output_path = script_dir / cfg.get("output_file", "output/update_glados_config.yaml")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    # 8. 输出 YAML（按方案名区分文件名）
+    output_dir = script_dir / cfg.get("output_dir", "output")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"clash_{profile}.yaml"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("# Clash Config\n")
         f.write("# Merged by merge_glados.py\n")
