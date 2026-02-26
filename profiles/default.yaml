@@ -42,13 +42,13 @@ proxy_groups:
     url: "http://www.gstatic.cn/generate_204"
     interval: 600
     tolerance: 100
-    proxies: ["Auto-Edge", "Auto-Fast", "Auto-Failover"]
+    proxies: ["Auto-Edge", "Auto-Fast", "Auto-Failover", "VPS"]
 
   - name: Auto
     type: fallback
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
-    proxies: ["Auto-Fast", "Auto-Edge", "Auto-Failover"]
+    proxies: ["Auto-Fast", "Auto-Edge", "Auto-Failover", "VPS"]
 
   # --- 手动选择组 ---
   - name: Proxy

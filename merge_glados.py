@@ -380,15 +380,37 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     needs_glados = profile_needs_glados(cfg, profile)
     glados_data = None
     proxies = []
+    glados_status = "skip"
 
     if needs_glados:
         glados_url = cfg.get("glados_url", "")
         if glados_url:
             cache_file = str(script_dir / cfg.get("glados_cache_file", "cache/glados_latest.yaml"))
-            glados_data = fetch_subscription(glados_url, "GlaDOS 订阅", cache_file=cache_file)
+            try:
+                resp = requests.get(glados_url, timeout=30)
+                resp.raise_for_status()
+                glados_data = yaml.safe_load(resp.text)
+                glados_status = "ok"
+                # 保存缓存
+                Path(cache_file).parent.mkdir(parents=True, exist_ok=True)
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    f.write(resp.text)
+                logger.info("成功获取 GlaDOS 订阅")
+            except requests.RequestException as e:
+                logger.warning("获取 GlaDOS 订阅失败: %s", e)
+                if Path(cache_file).exists():
+                    glados_status = "cache"
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        glados_data = yaml.safe_load(f)
+                    logger.info("⚠️  回退使用本地缓存: %s", cache_file)
+                else:
+                    glados_status = "fail"
+                    logger.error("无本地缓存可用，无法继续")
+                    sys.exit(1)
             proxies = glados_data.get("proxies", [])
             logger.info("GlaDOS 订阅共 %d 个节点", len(proxies))
         else:
+            glados_status = "no-url"
             logger.warning("方案引用了 {分类名} 但未配置 glados_url，跳过 GlaDOS 节点")
     else:
         logger.info("📦 当前方案无需 GlaDOS 节点，跳过订阅获取")
@@ -398,6 +420,7 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
 
     # 3. 构建 proxy-providers
     providers = build_proxy_providers(cfg)
+    provider_status = "ok" if providers else "none"
     if providers:
         result["proxy-providers"] = providers
         logger.info("已构建 proxy-providers: %s", list(providers.keys()))
@@ -416,29 +439,53 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
     result["rules"] = load_rules_template(str(rules_file))
 
     # 7. 自动修复 rules 中引用的缺失组名
+    n_rules_before = len(result["rules"])
     result["rules"] = fixup_rules(result)
+    # 计算回退数（fixup_rules 中已打印详细日志）
 
-    # 8. 输出 YAML（按方案名区分文件名）
+    # 8. 输出 YAML（固定名 + 生成日志）
+    from datetime import datetime
+    now = datetime.now()
+
     output_dir = script_dir / cfg.get("output_dir", "output")
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 生成 YAML 内容
+    yaml_header = f"# Clash Config - profile: {profile}\n# Generated: {now.strftime('%Y-%m-%d %H:%M:%S')}\n# By merge_glados.py\n\n"
+    yaml_content = yaml.dump(
+        dict(result),
+        default_flow_style=False,
+        allow_unicode=True,
+        sort_keys=False,
+        width=200,
+    )
+
+    # 写入固定名文件（方便 Clash 导入）
     output_path = output_dir / f"clash_{profile}.yaml"
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("# Clash Config\n")
-        f.write("# Merged by merge_glados.py\n")
-        f.write("\n")
-        yaml.dump(
-            dict(result),
-            f,
-            default_flow_style=False,
-            allow_unicode=True,
-            sort_keys=False,
-            width=200,
-        )
+        f.write(yaml_header + yaml_content)
+    file_size_kb = output_path.stat().st_size / 1024
 
-    logger.info("✅ 合并完成！输出文件: %s", output_path)
-    logger.info("   - proxies: %d 个节点", len(proxies))
-    logger.info("   - proxy-groups: %d 个分组", len(result["proxy-groups"]))
-    logger.info("   - rules: %d 条规则", len(result["rules"]))
+    # 追加生成日志
+    log_path = output_dir / "generate.log"
+    n_proxies = len(proxies)
+    n_groups = len(result["proxy-groups"])
+    n_rules = len(result["rules"])
+    log_line = (
+        f"{now.strftime('%Y-%m-%d %H:%M:%S')} | {profile:10s} "
+        f"| {n_proxies:3d} nodes | {n_groups:2d} groups | {n_rules:4d} rules "
+        f"| glados: {glados_status:5s} | provider: {provider_status:4s} "
+        f"| {file_size_kb:.0f}KB\n"
+    )
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(log_line)
+
+    logger.info("✅ 合并完成！")
+    logger.info("   📄 输出: %s (%.0fKB)", output_path, file_size_kb)
+    logger.info("   📋 日志: %s", log_path)
+    logger.info("   - proxies: %d 个节点", n_proxies)
+    logger.info("   - proxy-groups: %d 个分组", n_groups)
+    logger.info("   - rules: %d 条规则", n_rules)
 
 
 # ---------------------------------------------------------------------------

@@ -23,9 +23,10 @@ clash-sub-merger/
 │   ├── default.yaml          #   完整方案（GlaDOS + VPS，11 个分组）
 │   └── vps.yaml              #   极简方案（仅 VPS，1 个分组）
 ├── output/                   # 生成结果（.gitignore 排除）
-│   ├── clash_default.yaml    #   default 方案输出
-│   └── clash_vps.yaml        #   vps 方案输出
-├── cache/                    # 订阅缓存（.gitignore 排除）
+│   ├── clash_default.yaml    #   固定名输出（Clash 导入用）
+│   ├── clash_vps.yaml        #   固定名输出
+│   └── generate.log          #   生成记录（追加写入）
+├── cache/                    # GlaDOS 订阅缓存（获取成功自动保存，失败时回退）
 ├── .gitignore
 └── README.md
 ```
@@ -61,7 +62,7 @@ python merge_glados.py --list-profiles    # 查看所有方案
 
 ### default 方案（完整，11 个分组）
 
-需要 GlaDOS 订阅。VPS 节点（RackNerd + Vultr）合并为一个 VPS 组，GlaDOS 节点按区域自动分类。
+需要 GlaDOS 订阅。VPS 节点（RackNerd + Vultr）合并为一个 VPS 组，GlaDOS 节点按区域自动分类。Auto/Express 故障转移链末尾有 VPS 兜底。
 
 ```
 流量分流示意：
@@ -70,6 +71,8 @@ python merge_glados.py --list-profiles    # 查看所有方案
 用户请求 → Rules ─┼→ Proxy (手动选择: Auto / VPS / 各区域节点)
                   ├→ Video / Netflix / Scholar / Steam
                   └→ DIRECT (国内流量直连)
+
+故障转移链：Auto-Fast → Auto-Edge → Auto-Failover → VPS (兜底)
 ```
 
 ### vps 方案（极简，1 个分组）
@@ -108,6 +111,22 @@ proxy_groups:
 | `DIRECT` / `REJECT` | Clash 内置 |
 
 可用分类（自动识别 `GLaDOS-XX-NN` 格式）：`R2` `B1` `US` `JP` `TW` `SG` `D1` `S2` `P1` `Netflix`
+
+## 生成日志
+
+每次运行追加记录到 `output/generate.log`：
+
+```
+2026-02-26 10:31:00 | default    |  54 nodes | 11 groups | 1201 rules | glados: cache | provider: ok   | 60KB
+2026-02-26 10:31:00 | vps        |   0 nodes |  1 groups | 1201 rules | glados: skip  | provider: ok   | 41KB
+```
+
+| GlaDOS 状态 | 含义 |
+|-------------|------|
+| `ok` | 在线获取成功 |
+| `cache` | 在线失败，回退本地缓存 |
+| `skip` | 当前方案不需要 GlaDOS |
+| `fail` | 获取失败且无缓存 |
 
 ## 注意事项
 
