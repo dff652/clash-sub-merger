@@ -1,5 +1,5 @@
 # ===== 方案：mihomo =====
-# 自动同步自 GlaDOS mihomo 订阅（2026-02-26 13:27:07）
+# 自动同步自 GlaDOS mihomo 订阅（2026-02-26 15:26:18）
 # 运行 python sync_profiles.py -t mihomo 更新此文件
 
 needs_glados: true

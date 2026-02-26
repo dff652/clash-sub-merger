@@ -1,5 +1,5 @@
 # ===== 方案：clash =====
-# 自动同步自 GlaDOS clash 订阅（2026-02-26 13:27:08）
+# 自动同步自 GlaDOS clash 订阅（2026-02-26 13:43:28）
 # 运行 python sync_profiles.py -t clash 更新此文件
 
 needs_glados: true

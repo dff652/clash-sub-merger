@@ -25,12 +25,22 @@ import requests
 # ---------------------------------------------------------------------------
 # 日志配置
 # ---------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-logger = logging.getLogger(__name__)
+_log_fmt = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
+# 控制台输出
+_console = logging.StreamHandler()
+_console.setFormatter(_log_fmt)
+
+# 文件输出（logs/detail.log）
+_log_dir = Path(__file__).parent / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+_file_handler = logging.FileHandler(_log_dir / "detail.log", encoding="utf-8")
+_file_handler.setFormatter(_log_fmt)
+
+logger = logging.getLogger("merge_glados")
+logger.setLevel(logging.INFO)
+logger.addHandler(_console)
+logger.addHandler(_file_handler)
 
 # ---------------------------------------------------------------------------
 # YAML 保序支持
