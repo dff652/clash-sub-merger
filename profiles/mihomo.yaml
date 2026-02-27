@@ -9,7 +9,7 @@ proxy_groups:
   # --- VPS 节点（Sub-Store，追加）---
   - name: VPS
     type: select
-    use: [sub3in1]
+    use: ["{PROVIDER}"]
 
   - name: Auto
     type: url-test

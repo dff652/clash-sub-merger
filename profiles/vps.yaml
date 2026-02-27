@@ -7,4 +7,4 @@
 proxy_groups:
   - name: VPS
     type: select
-    use: [sub3in1]
+    use: ["{PROVIDER}"]

@@ -12,7 +12,7 @@ proxy_groups:
   # --- VPS 节点（从 Sub-Store 获取，合并）---
   - name: VPS
     type: select
-    use: [sub3in1]
+    use: ["{PROVIDER}"]
 
   # --- 自动测速组 ---
   - name: Auto-Fast

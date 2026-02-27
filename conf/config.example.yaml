@@ -7,14 +7,19 @@ glados_urls:
   mihomo: "https://update.glados-config.com/mihomo/<your-id>/<your-token>/<your-port>/glados.yaml"
   clash: "https://update.glados-config.com/clash/<your-id>/<your-token>/<your-port>/glados.yaml"
 
-# GlaDOS 本地缓存目录（按客户端分别缓存）
-glados_cache_dir: "cache"
+
+
+# 订阅下载保存目录
+download_dir: "download"
+
+# 节点数最低阈值（低于此值视为异常数据，拒绝覆盖已有文件）
+min_proxy_count: 5
 
 # Sub-Store 组合订阅链接
 sub_store_url: "http://<your-host>:<port>/<your-token>/download/collection/<collection-name>"
 
 # Sub-Store provider 名称
-sub_store_provider_name: "sub3in1"
+sub_store_provider_name: "sub_allin1"
 
 # 输出目录
 output_dir: "output"
