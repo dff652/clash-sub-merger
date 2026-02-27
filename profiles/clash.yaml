@@ -1,5 +1,5 @@
 # ===== 方案：clash =====
-# 自动同步自 GlaDOS clash 订阅（2026-02-26 13:43:28）
+# 自动同步自 GlaDOS clash 订阅（2026-02-27 11:24:02）
 # 运行 python sync_profiles.py -t clash 更新此文件
 
 needs_glados: true
@@ -14,12 +14,18 @@ proxy_groups:
   - name: Auto
     type: url-test
     url: "http://www.gstatic.cn/generate_204"
-    interval: 120
+    interval: 180
     tolerance: 100
     proxies:
-      - "Fast-TW-B2-1"
-      - "Fast-TW-B2-2"
-      - "Fast-TW-B2-3"
+      - "Fast-B2-1"
+      - "Fast-B2-2"
+      - "Fast-B2-3"
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
+      - "SG-1"
+      - "SG-2"
+      - "SG-3"
       - "US-IPv6-N1-1"
       - "US-IPv6-N1-2"
       - "US-IPv6-N1-3"
@@ -33,28 +39,28 @@ proxy_groups:
     interval: 300
     tolerance: 100
     proxies:
-      - "Fast-Balancer-B1-1"
-      - "Fast-Balancer-B1-2"
-      - "Fast-Balancer-B1-3"
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
       - "US-1"
       - "US-2"
       - "US-3"
-      - "US-X02-D1-1"
-      - "US-X02-D1-2"
-      - "US-X02-D1-3"
-      - "US-X10-D2-1"
-      - "US-X10-D2-2"
-      - "US-X10-D2-3"
+      - "US-X1-D1-1"
+      - "US-X1-D1-2"
+      - "US-X1-D1-3"
+      - "US-X1-D2-1"
+      - "US-X1-D2-2"
+      - "US-X1-D2-3"
 
   - name: Download
     type: select
     proxies:
-      - "US-X02-D1-1"
-      - "US-X02-D1-2"
-      - "US-X02-D1-3"
-      - "US-X10-D2-1"
-      - "US-X10-D2-2"
-      - "US-X10-D2-3"
+      - "US-X1-D1-1"
+      - "US-X1-D1-2"
+      - "US-X1-D1-3"
+      - "US-X1-D2-1"
+      - "US-X1-D2-2"
+      - "US-X1-D2-3"
       - "DIRECT"
 
   - name: Microsoft
@@ -68,9 +74,65 @@ proxy_groups:
       - "US-IPv6-N2-3"
       - "DIRECT"
 
-  - name: PrivateIP
+  - name: Apple
     type: select
     proxies:
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+      - "DIRECT"
+
+  - name: Google
+    type: select
+    proxies:
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+
+  - name: YouTube
+    type: select
+    proxies:
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+
+  - name: Developer
+    type: select
+    proxies:
+      - "US-IPv6-N1-1"
+      - "US-IPv6-N1-2"
+      - "US-IPv6-N1-3"
+      - "US-IPv6-N2-1"
+      - "US-IPv6-N2-2"
+      - "US-IPv6-N2-3"
+      - "Fast-B2-1"
+      - "Fast-B2-2"
+      - "Fast-B2-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
+
+  - name: Streaming
+    type: select
+    proxies:
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
       - "TW-IPv6-P1-1"
       - "TW-IPv6-P1-2"
       - "TW-IPv6-P1-3"
@@ -102,12 +164,6 @@ proxy_groups:
       - "TW-IPv6-P2-1"
       - "TW-IPv6-P2-2"
       - "TW-IPv6-P2-3"
-      - "US-X02-D1-1"
-      - "US-X02-D1-2"
-      - "US-X02-D1-3"
-      - "US-X10-D2-1"
-      - "US-X10-D2-2"
-      - "US-X10-D2-3"
 
   - name: US
     type: url-test
@@ -155,7 +211,10 @@ proxy_groups:
       - "Auto"
       - "Express"
       - "Premium"
-      - "PrivateIP"
+      - "US"
+      - "JP"
+      - "TW"
+      - "SG"
       - "US-1"
       - "US-2"
       - "US-3"
@@ -168,10 +227,10 @@ proxy_groups:
       - "SG-1"
       - "SG-2"
       - "SG-3"
-      - "US-X02-D1-1"
-      - "US-X02-D1-2"
-      - "US-X02-D1-3"
-      - "US-X10-D2-1"
-      - "US-X10-D2-2"
-      - "US-X10-D2-3"
+      - "US-X1-D1-1"
+      - "US-X1-D1-2"
+      - "US-X1-D1-3"
+      - "US-X1-D2-1"
+      - "US-X1-D2-2"
+      - "US-X1-D2-3"
       - "VPS"

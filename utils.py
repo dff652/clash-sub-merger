@@ -59,17 +59,40 @@ def setup_logger(name: str, log_dir: str = None) -> logging.Logger:
 # ---------------------------------------------------------------------------
 
 def load_config(config_path: str, logger: logging.Logger = None) -> dict:
-    """加载 YAML 配置文件"""
+    """加载 YAML 配置文件，并检验是否包含未替换的占位符"""
     if logger is None:
         logger = logging.getLogger(__name__)
 
     path = Path(config_path)
     if not path.exists():
-        logger.error("配置文件不存在: %s", config_path)
+        logger.error("❌ 配置文件不存在: %s", config_path)
         sys.exit(1)
+        
     with open(path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
-    logger.info("已加载配置文件: %s", config_path)
+
+    # --- 配置项校验：拦截占位符 ---
+    has_error = False
+    placeholders = ["<your-id>", "<your-token>", "<your-port>", "<your-host>", "<port>", "<collection-name>"]
+    
+    # 1. 检查 GlaDOS 订阅链接
+    glados_urls = cfg.get("glados_urls", {})
+    for client, url in glados_urls.items():
+        if any(p in url for p in placeholders):
+            logger.error("❌ 配置错误: glados_urls.%s 包含未替换的占位符！请填入真实的订阅链接。", client)
+            has_error = True
+            
+    # 2. 检查 Sub-Store 链接
+    sub_store_url = cfg.get("sub_store_url", "")
+    if any(p in sub_store_url for p in placeholders):
+        logger.error("❌ 配置错误: sub_store_url 包含未替换的占位符！请填入真实的组合订阅链接。")
+        has_error = True
+        
+    if has_error:
+        logger.error("👉 请修改文件: %s，然后再试。", config_path)
+        sys.exit(1)
+
+    logger.info("已加载并校验配置文件: %s", config_path)
     return cfg
 
 
@@ -135,9 +158,12 @@ def download_subscription(
         logger.info("成功获取 %s，共 %d 字节，%d 个节点", name, len(resp.content), n_proxies)
 
         if n_proxies < min_proxies:
+            proxy_names = [p.get("name", "Unknown") for p in proxies]
             logger.warning(
-                "⚠️  %s 节点数(%d)低于阈值(%d)，疑似异常数据，拒绝保存",
-                name, n_proxies, min_proxies,
+                "⚠️  %s 节点数(%d)低于阈值(%d)，疑似异常数据，拒绝保存。\n"
+                "   获取到的异常节点列表: %s\n"
+                "   请检查你的订阅链接是否正确有效！",
+                name, n_proxies, min_proxies, proxy_names,
             )
             # 如果本地已有文件，回退使用
             save = Path(save_path)
