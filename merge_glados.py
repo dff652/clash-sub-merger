@@ -175,11 +175,33 @@ def build_proxy_groups(cfg: dict, categories: dict, profile: str = None) -> list
 
     groups = []
     skipped = []
+    
+    # 动态分析：找到代理节点数最多的 select 组，认为它是主代理组（排除掉专用于包含 provider 的极简组）
+    main_group_name = None
+    max_proxies = -1
+    for gdef in group_defs:
+        if gdef.get("type", "") == "select" and "proxies" in gdef:
+            # 排除掉自己创建的或节点数极少的组，比如 VPS
+            if gdef.get("name") == "VPS":
+                continue
+            num_proxies = len(gdef.get("proxies", []))
+            if num_proxies > max_proxies:
+                max_proxies = num_proxies
+                main_group_name = gdef.get("name")
+    
+    if main_group_name:
+        logger.info("⚡ 动态识别到主代理组: [%s] (包含 %d 个基础目标)", main_group_name, max_proxies)
+
     for gdef in group_defs:
         group = OrderedDict()
         for key, val in gdef.items():
             if key == "proxies" and isinstance(val, list):
-                group[key] = expand_proxy_list(val, categories)
+                expanded = expand_proxy_list(val, categories)
+                # 如果这个是主代理组，我们动态把 VPS 加进去（避免原文件被污染）
+                if gdef.get("name") == main_group_name:
+                    if "VPS" not in expanded:
+                        expanded.append("VPS")
+                group[key] = expanded
             elif key == "use" and isinstance(val, list):
                 group[key] = [provider_name if v == "{PROVIDER}" else v for v in val]
             else:
@@ -195,7 +217,7 @@ def build_proxy_groups(cfg: dict, categories: dict, profile: str = None) -> list
     if skipped:
         logger.warning("⚠️  以下分组因无可用节点被跳过: %s", ", ".join(skipped))
 
-    return groups
+    return groups, main_group_name
 
 
 def build_proxy_providers(cfg: dict) -> OrderedDict:
@@ -261,23 +283,24 @@ def load_rules(cfg: dict, profile: str) -> list:
     return rules
 
 
-def fixup_rules(result: dict) -> list:
+def fixup_rules(result: dict, main_proxy_group_name: str = None) -> list:
     """
     自动修复 rules 中引用的缺失组名。
-    如果 rules 引用的代理组/节点名在当前配置中不存在，
-    自动替换为第一个 select 类型的组（通常是 Proxy）。
-    回退比例超过 30% 时发出警告。
+    优先将找不到目标的规则替换为动态识别的 main_proxy_group_name。
+    如果没能识别到，则降级为第一个 select 类型的组。
     """
     builtin = {"DIRECT", "REJECT"}
     group_names = {g["name"] for g in result.get("proxy-groups", [])}
     proxy_names = {p["name"] for p in result.get("proxies", [])}
     valid_targets = builtin | group_names | proxy_names
 
-    fallback_target = "DIRECT"
-    for g in result.get("proxy-groups", []):
-        if g.get("type") == "select" and (g.get("proxies") or g.get("use")):
-            fallback_target = g["name"]
-            break
+    fallback_target = main_proxy_group_name if main_proxy_group_name in group_names else "DIRECT"
+    
+    if fallback_target == "DIRECT":
+        for g in result.get("proxy-groups", []):
+            if g.get("type") == "select" and (g.get("proxies") or g.get("use")) and g.get("name") != "VPS":
+                fallback_target = g["name"]
+                break
 
     rule_params = {"no-resolve"}
     rules = result.get("rules", [])
@@ -521,14 +544,15 @@ def merge_and_output(cfg: dict, profile: str = None) -> None:
 
     # 5. 分类节点 & 构建 proxy-groups
     categories = classify_proxies(proxies) if proxies else {}
-    result["proxy-groups"] = build_proxy_groups(cfg, categories, profile=profile)
+    groups, main_group_name = build_proxy_groups(cfg, categories, profile=profile)
+    result["proxy-groups"] = groups
     logger.info("已构建 %d 个代理组", len(result["proxy-groups"]))
 
     # 6. 加载 rules（优先方案配套规则）
     result["rules"] = load_rules(cfg, profile)
 
-    # 7. 自动修复 rules 中引用的缺失组名
-    result["rules"] = fixup_rules(result)
+    # 7. 自动修复 rules 中引用的缺失组名，并将其桥接到检测出的主分组
+    result["rules"] = fixup_rules(result, main_group_name)
 
     # 8. 输出 YAML
     now = datetime.now()

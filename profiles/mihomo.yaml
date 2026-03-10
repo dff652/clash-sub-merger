@@ -1,5 +1,5 @@
 # ===== 方案：mihomo =====
-# 自动同步自 GlaDOS mihomo 订阅（2026-02-27 11:24:02）
+# 自动同步自 GlaDOS mihomo 订阅（2026-03-09 16:51:28）
 # 运行 python sync_profiles.py -t mihomo 更新此文件
 
 needs_glados: true
@@ -11,46 +11,105 @@ proxy_groups:
     type: select
     use: ["{PROVIDER}"]
 
-  - name: Auto
-    type: url-test
-    url: "http://www.gstatic.cn/generate_204"
-    interval: 180
-    tolerance: 100
+  - name: Default Proxy
+    type: select
     proxies:
-      - "Fast-B2-1"
-      - "Fast-B2-2"
-      - "Fast-B2-3"
-      - "Balancer-B1-1"
-      - "Balancer-B1-2"
-      - "Balancer-B1-3"
-      - "SG-1"
-      - "SG-2"
-      - "SG-3"
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
-
-  - name: Express
-    type: url-test
-    url: "http://www.gstatic.cn/generate_204"
-    interval: 300
-    tolerance: 100
-    proxies:
-      - "Balancer-B1-1"
-      - "Balancer-B1-2"
-      - "Balancer-B1-3"
-      - "US-1"
-      - "US-2"
-      - "US-3"
+      - "Auto"
+      - "Express"
+      - "Premium"
+      - "US Fixed IP"
+      - "TW Fixed IP"
+      - "Download"
+      - "US"
+      - "TW"
+      - "JP"
+      - "SG"
+      - "US-Dedicated-F1-1"
+      - "US-Dedicated-F1-2"
+      - "US-Dedicated-F1-3"
+      - "US-Dedicated-F2-1"
+      - "US-Dedicated-F2-2"
+      - "US-Dedicated-F2-3"
+      - "US-X1-1"
+      - "US-X1-2"
+      - "US-X1-3"
+      - "JP-X2-1"
+      - "JP-X2-2"
+      - "JP-X2-3"
+      - "TW-X1-1"
+      - "TW-X1-2"
+      - "TW-X1-3"
+      - "SG-X2-1"
+      - "SG-X2-2"
+      - "SG-X2-3"
       - "US-X1-D1-1"
       - "US-X1-D1-2"
       - "US-X1-D1-3"
       - "US-X1-D2-1"
       - "US-X1-D2-2"
       - "US-X1-D2-3"
+
+  - name: Research + AI
+    type: select
+    proxies:
+      - "US Fixed IP"
+      - "TW Fixed IP"
+      - "US-Dedicated-F1-1"
+      - "US-Dedicated-F1-2"
+      - "US-Dedicated-F1-3"
+      - "US-Dedicated-F2-1"
+      - "US-Dedicated-F2-2"
+      - "US-Dedicated-F2-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
+
+  - name: Streaming
+    type: select
+    proxies:
+      - "Express"
+      - "US-Balancer-N1-1"
+      - "US-Balancer-N1-2"
+      - "US-Balancer-N1-3"
+      - "US-Netflix-N2-1"
+      - "US-Netflix-N2-2"
+      - "US-Netflix-N2-3"
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
+
+  - name: Developer
+    type: select
+    proxies:
+      - "US Fixed IP"
+      - "TW Fixed IP"
+      - "US-Dedicated-F1-1"
+      - "US-Dedicated-F1-2"
+      - "US-Dedicated-F1-3"
+      - "US-Dedicated-F2-1"
+      - "US-Dedicated-F2-2"
+      - "US-Dedicated-F2-3"
+      - "Fast-B1-1"
+      - "Fast-B1-2"
+      - "Fast-B1-3"
+      - "Fast-B2-1"
+      - "Fast-B2-2"
+      - "Fast-B2-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
 
   - name: Download
     type: select
@@ -63,101 +122,120 @@ proxy_groups:
       - "US-X1-D2-3"
       - "DIRECT"
 
-  - name: Microsoft
+  - name: Steam
     type: select
     proxies:
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
       - "DIRECT"
+      - "Download"
+      - "Express"
+      - "US-X1-D1-1"
+      - "US-X1-D1-2"
+      - "US-X1-D1-3"
+      - "US-X1-D2-1"
+      - "US-X1-D2-2"
+      - "US-X1-D2-3"
+      - "US-X1-1"
+      - "US-X1-2"
+      - "US-X1-3"
+
+  - name: Premium
+    type: select
+    proxies:
+      - "Express"
+      - "US Fixed IP"
+      - "US-Dedicated-F1-1"
+      - "US-Dedicated-F1-2"
+      - "US-Dedicated-F1-3"
+      - "US-Dedicated-F2-1"
+      - "US-Dedicated-F2-2"
+      - "US-Dedicated-F2-3"
+      - "TW-IPv6-P1-1"
+      - "TW-IPv6-P1-2"
+      - "TW-IPv6-P1-3"
+      - "TW-IPv6-P2-1"
+      - "TW-IPv6-P2-2"
+      - "TW-IPv6-P2-3"
 
   - name: Apple
     type: select
     proxies:
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
+      - "US-Balancer-N1-1"
+      - "US-Balancer-N1-2"
+      - "US-Balancer-N1-3"
+      - "US-Netflix-N2-1"
+      - "US-Netflix-N2-2"
+      - "US-Netflix-N2-3"
       - "DIRECT"
 
-  - name: Google
+  - name: Microsoft
     type: select
     proxies:
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
+      - "US-Balancer-N1-1"
+      - "US-Balancer-N1-2"
+      - "US-Balancer-N1-3"
+      - "US-Netflix-N2-1"
+      - "US-Netflix-N2-2"
+      - "US-Netflix-N2-3"
+      - "DIRECT"
 
-  - name: YouTube
-    type: select
+  - name: Auto
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 180
+    tolerance: 100
     proxies:
-      - "Balancer-B1-1"
-      - "Balancer-B1-2"
-      - "Balancer-B1-3"
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
-
-  - name: Developer
-    type: select
-    proxies:
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
+      - "Fast-B1-1"
+      - "Fast-B1-2"
+      - "Fast-B1-3"
       - "Fast-B2-1"
       - "Fast-B2-2"
       - "Fast-B2-3"
-      - "TW-IPv6-P1-1"
-      - "TW-IPv6-P1-2"
-      - "TW-IPv6-P1-3"
-      - "TW-IPv6-P2-1"
-      - "TW-IPv6-P2-2"
-      - "TW-IPv6-P2-3"
-
-  - name: Streaming
-    type: select
-    proxies:
       - "Balancer-B1-1"
       - "Balancer-B1-2"
       - "Balancer-B1-3"
-      - "TW-IPv6-P1-1"
-      - "TW-IPv6-P1-2"
-      - "TW-IPv6-P1-3"
-      - "TW-IPv6-P2-1"
-      - "TW-IPv6-P2-2"
-      - "TW-IPv6-P2-3"
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
+      - "US-Balancer-N1-1"
+      - "US-Balancer-N1-2"
+      - "US-Balancer-N1-3"
+      - "US-Netflix-N2-1"
+      - "US-Netflix-N2-2"
+      - "US-Netflix-N2-3"
 
-  - name: Premium
-    type: select
+  - name: Express
+    type: url-test
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
     tolerance: 100
     proxies:
-      - "US-IPv6-N1-1"
-      - "US-IPv6-N1-2"
-      - "US-IPv6-N1-3"
-      - "US-IPv6-N2-1"
-      - "US-IPv6-N2-2"
-      - "US-IPv6-N2-3"
+      - "Balancer-B1-1"
+      - "Balancer-B1-2"
+      - "Balancer-B1-3"
+      - "US-X1-1"
+      - "US-X1-2"
+      - "US-X1-3"
+      - "US-X1-D1-1"
+      - "US-X1-D1-2"
+      - "US-X1-D1-3"
+      - "US-X1-D2-1"
+      - "US-X1-D2-2"
+      - "US-X1-D2-3"
+
+  - name: US Fixed IP
+    type: fallback
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 120
+    proxies:
+      - "US-Dedicated-F1-1"
+      - "US-Dedicated-F1-2"
+      - "US-Dedicated-F1-3"
+      - "US-Dedicated-F2-1"
+      - "US-Dedicated-F2-2"
+      - "US-Dedicated-F2-3"
+
+  - name: TW Fixed IP
+    type: fallback
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 120
+    proxies:
       - "TW-IPv6-P1-1"
       - "TW-IPv6-P1-2"
       - "TW-IPv6-P1-3"
@@ -170,67 +248,33 @@ proxy_groups:
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
     proxies:
-      - "US-1"
-      - "US-2"
-      - "US-3"
-      - "Auto"
-
-  - name: JP
-    type: url-test
-    url: "http://www.gstatic.cn/generate_204"
-    interval: 300
-    proxies:
-      - "JP-1"
-      - "JP-2"
-      - "JP-3"
-      - "Auto"
+      - "US-X1-1"
+      - "US-X1-2"
+      - "US-X1-3"
 
   - name: TW
     type: url-test
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
     proxies:
-      - "TW-1"
-      - "TW-2"
-      - "TW-3"
-      - "Auto"
+      - "TW-X1-1"
+      - "TW-X1-2"
+      - "TW-X1-3"
+
+  - name: JP
+    type: url-test
+    url: "http://www.gstatic.cn/generate_204"
+    interval: 300
+    proxies:
+      - "JP-X2-1"
+      - "JP-X2-2"
+      - "JP-X2-3"
 
   - name: SG
     type: url-test
     url: "http://www.gstatic.cn/generate_204"
     interval: 300
     proxies:
-      - "SG-1"
-      - "SG-2"
-      - "SG-3"
-      - "Auto"
-
-  - name: Proxy
-    type: select
-    proxies:
-      - "Auto"
-      - "Express"
-      - "Premium"
-      - "US"
-      - "JP"
-      - "TW"
-      - "SG"
-      - "US-1"
-      - "US-2"
-      - "US-3"
-      - "JP-1"
-      - "JP-2"
-      - "JP-3"
-      - "TW-1"
-      - "TW-2"
-      - "TW-3"
-      - "SG-1"
-      - "SG-2"
-      - "SG-3"
-      - "US-X1-D1-1"
-      - "US-X1-D1-2"
-      - "US-X1-D1-3"
-      - "US-X1-D2-1"
-      - "US-X1-D2-2"
-      - "US-X1-D2-3"
-      - "VPS"
+      - "SG-X2-1"
+      - "SG-X2-2"
+      - "SG-X2-3"

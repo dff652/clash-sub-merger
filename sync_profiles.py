@@ -73,8 +73,6 @@ def generate_profile(client: str, glados_data: dict) -> str:
             lines.append(f"    proxies:")
             for p in proxies:
                 lines.append(f'      - "{p}"')
-            if g["name"] == "Proxy":
-                lines.append(f'      - "VPS"')
 
         lines.append("")
 
